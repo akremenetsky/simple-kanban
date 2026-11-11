@@ -35,3 +35,21 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+.placeholder,
+.placeholder:hover {
+  border: 1px dashed var(--focus);
+  background: var(--surface-hover);
+  box-shadow: none;
+}
+
+.placeholder > * {
+  visibility: hidden;
+}
+
+.overlay {
+  cursor: grabbing;
+  border-color: var(--focus);
+  box-shadow: var(--shadow-lg);
+  transform: rotate(2deg);
+}

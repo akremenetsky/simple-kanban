@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Card, UpdateCardInput } from '@kanban/shared';
+import { byPosition, positionAt, type Card, type UpdateCardInput } from '@kanban/shared';
 import { api } from './client.js';
-import { byPosition, cardKeys } from './lists.js';
+import { cardKeys } from './lists.js';
 
 export function useCards(boardId: string) {
   return useQuery({
@@ -69,4 +69,41 @@ export function useDeleteCard(boardId: string) {
     },
     onError: (_err, _id, ctx) => qc.setQueryData(key, ctx?.prev),
   });
+}
+
+interface MoveCardVars {
+  id: string;
+  listId: string;
+  index: number;
+}
+
+/**
+ * Moves a card to `index` within `listId` (counted without the card itself).
+ * The cache is updated synchronously so a drop doesn't flicker back, and
+ * re-synced from the server if the request fails.
+ */
+export function useMoveCard(boardId: string) {
+  const qc = useQueryClient();
+  const key = cardKeys.byBoard(boardId);
+  const mutation = useMutation({
+    mutationFn: ({ id, listId, index }: MoveCardVars) => api.moveCard(id, { listId, index }),
+    onSuccess: (card) => {
+      qc.setQueryData<Card[]>(key, (old) => old?.map((c) => (c.id === card.id ? card : c)));
+    },
+    onError: () => qc.invalidateQueries({ queryKey: key }),
+  });
+
+  return (vars: MoveCardVars) => {
+    void qc.cancelQueries({ queryKey: key });
+    qc.setQueryData<Card[]>(key, (old) => {
+      if (!old) return old;
+      const others = old
+        .filter((c) => c.listId === vars.listId && c.id !== vars.id)
+        .sort(byPosition)
+        .map((c) => c.position);
+      const position = positionAt(others, vars.index);
+      return old.map((c) => (c.id === vars.id ? { ...c, listId: vars.listId, position } : c));
+    });
+    mutation.mutate(vars);
+  };
 }

@@ -5,6 +5,7 @@ const paths = {
   arrowLeft: 'M19 12H5M11 6l-6 6 6 6',
   x: 'M6 6l12 12M18 6L6 18',
   text: 'M5 7h14M5 12h14M5 17h9',
+  grip: 'M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01',
 } as const;
 
 export type IconName = keyof typeof paths;

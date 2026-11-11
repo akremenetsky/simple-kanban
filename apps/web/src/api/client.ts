@@ -6,6 +6,8 @@ import type {
   CreateListInput,
   Health,
   List,
+  MoveCardInput,
+  MoveListInput,
   UpdateBoardInput,
   UpdateCardInput,
   UpdateListInput,
@@ -31,6 +33,8 @@ export const api = {
   updateList: (id: string, input: UpdateListInput) =>
     request<List>(`/lists/${id}`, { method: 'PATCH', body: json(input) }),
   deleteList: (id: string) => request<void>(`/lists/${id}`, { method: 'DELETE' }),
+  moveList: (id: string, input: MoveListInput) =>
+    request<List>(`/lists/${id}/move`, { method: 'POST', body: json(input) }),
 
   listCards: (boardId: string) => request<Card[]>(`/boards/${boardId}/cards`),
   createCard: (listId: string, input: CreateCardInput) =>
@@ -38,4 +42,6 @@ export const api = {
   updateCard: (id: string, input: UpdateCardInput) =>
     request<Card>(`/cards/${id}`, { method: 'PATCH', body: json(input) }),
   deleteCard: (id: string) => request<void>(`/cards/${id}`, { method: 'DELETE' }),
+  moveCard: (id: string, input: MoveCardInput) =>
+    request<Card>(`/cards/${id}/move`, { method: 'POST', body: json(input) }),
 };

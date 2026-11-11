@@ -39,6 +39,8 @@ against localhost with `NO_PROXY=127.0.0.1,localhost no_proxy=127.0.0.1,localhos
 - Change the DB schema only in `apps/api/src/db/schema.ts`, then run `npm run db:generate`. Never hand-edit generated migrations in `apps/api/drizzle/`.
 - DB columns are snake_case, TS fields are camelCase (`casing: 'snake_case'`).
 - List and card order is stored in the `position` column (text, `COLLATE "C"`) as a fractional-indexing key (`fractional-indexing` library). Moving an item updates only that item's position.
+- Moves go through `POST /api/cards/:id/move` (`{ listId, index }`) and `POST /api/lists/:id/move` (`{ index }`). `index` is the target slot among the destination's items excluding the moved one; the server computes the key with `positionAt()` from `packages/shared`, and the web client uses the same helper for optimistic updates. Position writes lock the parent row (list for cards, board for lists) to keep keys distinct.
+- Drag & drop lives in `apps/web/src/components/BoardCanvas.tsx` (dnd-kit). Cards drag by the whole card; lists drag by the header (pointer) or the grip button (keyboard: Space to pick up/drop, arrows to move, Escape to cancel). In e2e tests drag with `page.mouse` in small steps and wait for dnd-kit's live-region announcements.
 - API contracts (inputs and responses) are Zod schemas in `packages/shared`, used as `schema` in Fastify routes.
 - API routes live under the `/api` prefix as separate plugins in `apps/api/src/routes/`, registered in `src/app.ts`.
 - `buildApp({ db })` does not start a server. API tests use `app.inject()` and the test DB, which is truncated before each test (`test/setup.ts`).

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Card, List } from '@kanban/shared';
+import { byPosition, positionAt, type Card, type List } from '@kanban/shared';
 import { api } from './client.js';
 import { boardKeys } from './boards.js';
 
@@ -10,10 +10,6 @@ export const listKeys = {
 export const cardKeys = {
   byBoard: (boardId: string) => [...boardKeys.detail(boardId), 'cards'] as const,
 };
-
-/** Orders by fractional-index key using plain code-unit comparison (matches COLLATE "C"). */
-export const byPosition = (a: { position: string }, b: { position: string }) =>
-  a.position < b.position ? -1 : a.position > b.position ? 1 : 0;
 
 export function useLists(boardId: string) {
   return useQuery({
@@ -72,4 +68,33 @@ export function useDeleteList(boardId: string) {
       qc.setQueryData(cardKeys.byBoard(boardId), ctx?.prevCards);
     },
   });
+}
+
+/**
+ * Moves a list to `index` among the other lists. The cache is updated synchronously
+ * (so a drop doesn't flicker back) and re-synced from the server if the request fails.
+ */
+export function useMoveList(boardId: string) {
+  const qc = useQueryClient();
+  const key = listKeys.byBoard(boardId);
+  const mutation = useMutation({
+    mutationFn: ({ id, index }: { id: string; index: number }) => api.moveList(id, { index }),
+    onSuccess: (list) => {
+      qc.setQueryData<List[]>(key, (old) =>
+        old?.map((l) => (l.id === list.id ? list : l)).sort(byPosition),
+      );
+    },
+    onError: () => qc.invalidateQueries({ queryKey: key }),
+  });
+
+  return (vars: { id: string; index: number }) => {
+    void qc.cancelQueries({ queryKey: key });
+    qc.setQueryData<List[]>(key, (old) => {
+      if (!old) return old;
+      const others = old.filter((l) => l.id !== vars.id).map((l) => l.position);
+      const position = positionAt(others, vars.index);
+      return old.map((l) => (l.id === vars.id ? { ...l, position } : l)).sort(byPosition);
+    });
+    mutation.mutate(vars);
+  };
 }

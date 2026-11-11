@@ -1,14 +1,16 @@
-import { asc, desc, eq } from 'drizzle-orm';
+import { and, asc, eq, ne } from 'drizzle-orm';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
-import { generateKeyBetween } from 'fractional-indexing';
 import { z } from 'zod';
 import {
   boardParams,
   createListInput,
   listParams,
   listSchema,
+  moveListInput,
+  positionAt,
   updateListInput,
 } from '@kanban/shared';
+import type { Tx } from '../db/client.js';
 import { boards, lists } from '../db/schema.js';
 import { toList } from '../dto.js';
 import { notFound } from '../errors.js';
@@ -45,19 +47,14 @@ export const listRoutes: FastifyPluginAsyncZod = async (app) => {
           .for('update');
         if (!board) throw notFound('Board');
 
-        const [last] = await tx
-          .select({ position: lists.position })
-          .from(lists)
-          .where(eq(lists.boardId, board.id))
-          .orderBy(desc(lists.position))
-          .limit(1);
+        const positions = await listPositions(tx, board.id);
 
         const [created] = await tx
           .insert(lists)
           .values({
             boardId: board.id,
             title: req.body.title,
-            position: generateKeyBetween(last?.position ?? null, null),
+            position: positionAt(positions, positions.length),
           })
           .returning();
         return created!;
@@ -80,6 +77,36 @@ export const listRoutes: FastifyPluginAsyncZod = async (app) => {
     },
   );
 
+  app.post(
+    '/lists/:listId/move',
+    { schema: { params: listParams, body: moveListInput, response: { 200: listSchema } } },
+    async (req) => {
+      const row = await app.db.transaction(async (tx) => {
+        const list = await tx.query.lists.findFirst({
+          columns: { id: true, boardId: true },
+          where: eq(lists.id, req.params.listId),
+        });
+        if (!list) throw notFound('List');
+        // Serialize all position changes within the board.
+        await tx
+          .select({ id: boards.id })
+          .from(boards)
+          .where(eq(boards.id, list.boardId))
+          .for('update');
+
+        const positions = await listPositions(tx, list.boardId, list.id);
+        const [moved] = await tx
+          .update(lists)
+          .set({ position: positionAt(positions, req.body.index) })
+          .where(eq(lists.id, list.id))
+          .returning();
+        if (!moved) throw notFound('List');
+        return moved;
+      });
+      return toList(row);
+    },
+  );
+
   app.delete('/lists/:listId', { schema: { params: listParams } }, async (req, reply) => {
     const [row] = await app.db
       .delete(lists)
@@ -89,3 +116,17 @@ export const listRoutes: FastifyPluginAsyncZod = async (app) => {
     return reply.code(204).send();
   });
 };
+
+/** Sorted positions of a board's lists, optionally excluding one list. */
+async function listPositions(tx: Tx, boardId: string, excludeId?: string) {
+  const rows = await tx
+    .select({ position: lists.position })
+    .from(lists)
+    .where(
+      excludeId
+        ? and(eq(lists.boardId, boardId), ne(lists.id, excludeId))
+        : eq(lists.boardId, boardId),
+    )
+    .orderBy(asc(lists.position));
+  return rows.map((r) => r.position);
+}

@@ -86,3 +86,12 @@ export const updateCardInput = z
     message: 'Nothing to update',
   });
 export type UpdateCardInput = z.infer<typeof updateCardInput>;
+
+/** Target index is counted among the destination's items, excluding the moved item. */
+const index = z.int().min(0);
+
+export const moveCardInput = z.object({ listId: id, index });
+export type MoveCardInput = z.infer<typeof moveCardInput>;
+
+export const moveListInput = z.object({ index });
+export type MoveListInput = z.infer<typeof moveListInput>;
