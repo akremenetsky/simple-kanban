@@ -2,10 +2,18 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { ApiError } from '../api/http.js';
 import type { List } from '@kanban/shared';
+import {
+  useCards,
+  useCardsByList,
+  useCreateCard,
+  useDeleteCard,
+  useUpdateCard,
+} from '../api/cards.js';
 import { useBoard, useDeleteBoard, useRenameBoard } from '../api/boards.js';
 import { useCreateList, useDeleteList, useLists, useRenameList } from '../api/lists.js';
 import { AddListForm } from '../components/AddListForm.js';
 import { Button } from '../components/Button.js';
+import { CardDialog } from '../components/CardDialog.js';
 import { ConfirmDialog } from '../components/ConfirmDialog.js';
 import { Icon } from '../components/Icon.js';
 import { InlineEdit } from '../components/InlineEdit.js';
@@ -100,10 +108,20 @@ function BoardLists({ boardId }: { boardId: string }) {
   const createList = useCreateList(boardId);
   const renameList = useRenameList(boardId);
   const deleteList = useDeleteList(boardId);
+  const cards = useCards(boardId);
+  const cardsByList = useCardsByList(cards.data);
+  const createCard = useCreateCard(boardId);
+  const updateCard = useUpdateCard(boardId);
+  const deleteCard = useDeleteCard(boardId);
   const [toDelete, setToDelete] = useState<List | null>(null);
+  const [openCardId, setOpenCardId] = useState<string | null>(null);
 
-  if (lists.isPending) return <p className={styles.status}>Loading lists…</p>;
-  if (lists.isError) return <p className={styles.status}>Couldn’t load lists.</p>;
+  if (lists.isPending || cards.isPending) return <p className={styles.status}>Loading…</p>;
+  if (lists.isError || cards.isError)
+    return <p className={styles.status}>Couldn’t load the board.</p>;
+
+  const openCard = cards.data.find((c) => c.id === openCardId);
+  const openCardList = openCard && lists.data.find((l) => l.id === openCard.listId);
 
   return (
     <div className={styles.canvas}>
@@ -113,6 +131,12 @@ function BoardLists({ boardId }: { boardId: string }) {
           list={list}
           onRename={(title) => renameList.mutate({ id: list.id, title })}
           onDelete={() => setToDelete(list)}
+          cards={cardsByList.get(list.id) ?? []}
+          addingCard={createCard.isPending && createCard.variables.listId === list.id}
+          onAddCard={(title, done) =>
+            createCard.mutate({ listId: list.id, title }, { onSuccess: done })
+          }
+          onOpenCard={(card) => setOpenCardId(card.id)}
         />
       ))}
       <AddListForm
@@ -132,6 +156,20 @@ function BoardLists({ boardId }: { boardId: string }) {
         >
           All its cards will be deleted too. This can’t be undone.
         </ConfirmDialog>
+      )}
+
+      {openCard && (
+        <CardDialog
+          key={openCard.id}
+          card={openCard}
+          listTitle={openCardList?.title ?? ''}
+          onSave={(input) => updateCard.mutate({ id: openCard.id, ...input })}
+          onDelete={() => {
+            deleteCard.mutate(openCard.id);
+            setOpenCardId(null);
+          }}
+          onClose={() => setOpenCardId(null)}
+        />
       )}
     </div>
   );

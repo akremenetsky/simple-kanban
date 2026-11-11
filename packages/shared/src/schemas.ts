@@ -71,3 +71,18 @@ export type CreateListInput = z.infer<typeof createListInput>;
 
 export const updateListInput = z.object({ title });
 export type UpdateListInput = z.infer<typeof updateListInput>;
+
+const description = z.string().max(10_000);
+
+export const cardParams = z.object({ cardId: id });
+export type CardParams = z.infer<typeof cardParams>;
+
+export const createCardInput = z.object({ title, description: description.optional() });
+export type CreateCardInput = z.infer<typeof createCardInput>;
+
+export const updateCardInput = z
+  .object({ title: title.optional(), description: description.optional() })
+  .refine((v) => v.title !== undefined || v.description !== undefined, {
+    message: 'Nothing to update',
+  });
+export type UpdateCardInput = z.infer<typeof updateCardInput>;

@@ -60,12 +60,18 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: var(--space-1) var(--space-2) var(--space-2);
+  padding: 0 var(--space-2);
 }
 
-.empty {
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
   margin: 0;
-  padding: var(--space-2) var(--space-2) var(--space-1);
-  font-size: 13px;
-  color: var(--text-muted);
+  padding: var(--space-1) 0;
+  list-style: none;
+}
+
+.footer {
+  padding: var(--space-1) var(--space-2) var(--space-2);
 }

@@ -1,10 +1,13 @@
 import type {
   Board,
+  Card,
   CreateBoardInput,
+  CreateCardInput,
   CreateListInput,
   Health,
   List,
   UpdateBoardInput,
+  UpdateCardInput,
   UpdateListInput,
 } from '@kanban/shared';
 import { request } from './http.js';
@@ -28,4 +31,11 @@ export const api = {
   updateList: (id: string, input: UpdateListInput) =>
     request<List>(`/lists/${id}`, { method: 'PATCH', body: json(input) }),
   deleteList: (id: string) => request<void>(`/lists/${id}`, { method: 'DELETE' }),
+
+  listCards: (boardId: string) => request<Card[]>(`/boards/${boardId}/cards`),
+  createCard: (listId: string, input: CreateCardInput) =>
+    request<Card>(`/lists/${listId}/cards`, { method: 'POST', body: json(input) }),
+  updateCard: (id: string, input: UpdateCardInput) =>
+    request<Card>(`/cards/${id}`, { method: 'PATCH', body: json(input) }),
+  deleteCard: (id: string) => request<void>(`/cards/${id}`, { method: 'DELETE' }),
 };

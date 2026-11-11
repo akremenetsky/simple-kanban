@@ -8,6 +8,7 @@ import {
 } from 'fastify-type-provider-zod';
 import type { Db } from './db/client.js';
 import { boardRoutes } from './routes/boards.js';
+import { cardRoutes } from './routes/cards.js';
 import { healthRoutes } from './routes/health.js';
 import { listRoutes } from './routes/lists.js';
 
@@ -45,6 +46,7 @@ export function buildApp({ db, logger = false }: AppOptions) {
       await api.register(healthRoutes);
       await api.register(boardRoutes);
       await api.register(listRoutes);
+      await api.register(cardRoutes);
     },
     { prefix: '/api' },
   );
