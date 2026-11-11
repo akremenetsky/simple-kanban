@@ -1,0 +1,133 @@
+.page {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 32px;
+  margin-bottom: var(--space-5);
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) 0;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--text-muted);
+}
+
+.empty p {
+  margin: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tile {
+  position: relative;
+  min-height: 96px;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  transition: border-color 0.12s;
+}
+
+.tile:hover {
+  border-color: var(--focus);
+}
+
+.tileLink {
+  display: block;
+  padding-right: 60px;
+  font-weight: 500;
+  color: var(--text);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+/* Stretch the link over the whole tile. */
+.tileLink::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.tileActions {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+
+.tile:hover .tileActions,
+.tile:focus-within .tileActions {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .tileActions {
+    opacity: 1;
+  }
+}
+
+.tileInput {
+  font-weight: 500;
+}
+
+.newTile {
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.newTile:hover {
+  border-color: var(--border);
+}
+
+.newForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.newInput {
+  width: 100%;
+  padding: 6px var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  outline: none;
+}
+
+.newInput:focus {
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.newActions {
+  display: flex;
+  gap: var(--space-1);
+}

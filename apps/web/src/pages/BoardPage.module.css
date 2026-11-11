@@ -1,0 +1,68 @@
+.page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+}
+
+.back:hover {
+  background: var(--surface-muted);
+  color: var(--text);
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}
+
+.titleButton {
+  max-width: 100%;
+  padding: 2px 6px;
+  margin: 0 -6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: none;
+  font-weight: inherit;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: text;
+}
+
+.titleButton:hover {
+  background: var(--surface-muted);
+}
+
+.canvas {
+  flex: 1;
+  padding: 0 var(--space-5) var(--space-5);
+}
+
+.placeholder {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.status {
+  padding: var(--space-6) var(--space-5);
+  color: var(--text-muted);
+}
