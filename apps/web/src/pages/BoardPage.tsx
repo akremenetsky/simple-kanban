@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { ApiError } from '../api/http.js';
+import type { List } from '@kanban/shared';
 import { useBoard, useDeleteBoard, useRenameBoard } from '../api/boards.js';
+import { useCreateList, useDeleteList, useLists, useRenameList } from '../api/lists.js';
+import { AddListForm } from '../components/AddListForm.js';
 import { Button } from '../components/Button.js';
 import { ConfirmDialog } from '../components/ConfirmDialog.js';
 import { Icon } from '../components/Icon.js';
 import { InlineEdit } from '../components/InlineEdit.js';
+import { ListColumn } from '../components/ListColumn.js';
 import { useDocumentTitle } from '../useDocumentTitle.js';
 import styles from './BoardPage.module.css';
 
@@ -71,9 +75,7 @@ export function BoardPage() {
         </Button>
       </div>
 
-      <div className={styles.canvas}>
-        <p className={styles.placeholder}>Lists will live here.</p>
-      </div>
+      <BoardLists boardId={data.id} />
 
       {confirming && (
         <ConfirmDialog
@@ -87,6 +89,48 @@ export function BoardPage() {
           }}
         >
           All its lists and cards will be deleted too. This can’t be undone.
+        </ConfirmDialog>
+      )}
+    </div>
+  );
+}
+
+function BoardLists({ boardId }: { boardId: string }) {
+  const lists = useLists(boardId);
+  const createList = useCreateList(boardId);
+  const renameList = useRenameList(boardId);
+  const deleteList = useDeleteList(boardId);
+  const [toDelete, setToDelete] = useState<List | null>(null);
+
+  if (lists.isPending) return <p className={styles.status}>Loading lists…</p>;
+  if (lists.isError) return <p className={styles.status}>Couldn’t load lists.</p>;
+
+  return (
+    <div className={styles.canvas}>
+      {lists.data.map((list) => (
+        <ListColumn
+          key={list.id}
+          list={list}
+          onRename={(title) => renameList.mutate({ id: list.id, title })}
+          onDelete={() => setToDelete(list)}
+        />
+      ))}
+      <AddListForm
+        pending={createList.isPending}
+        onCreate={(title, done) => createList.mutate(title, { onSuccess: done })}
+      />
+
+      {toDelete && (
+        <ConfirmDialog
+          title={`Delete list “${toDelete.title}”?`}
+          confirmLabel="Delete list"
+          onCancel={() => setToDelete(null)}
+          onConfirm={() => {
+            deleteList.mutate(toDelete.id);
+            setToDelete(null);
+          }}
+        >
+          All its cards will be deleted too. This can’t be undone.
         </ConfirmDialog>
       )}
     </div>

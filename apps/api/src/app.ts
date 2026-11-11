@@ -9,6 +9,7 @@ import {
 import type { Db } from './db/client.js';
 import { boardRoutes } from './routes/boards.js';
 import { healthRoutes } from './routes/health.js';
+import { listRoutes } from './routes/lists.js';
 
 export interface AppOptions {
   db: Db;
@@ -43,6 +44,7 @@ export function buildApp({ db, logger = false }: AppOptions) {
     async (api) => {
       await api.register(healthRoutes);
       await api.register(boardRoutes);
+      await api.register(listRoutes);
     },
     { prefix: '/api' },
   );

@@ -4,6 +4,7 @@
   --bg: #fafafa;
   --surface: #ffffff;
   --surface-muted: #f4f4f5;
+  --surface-hover: #e9e9ec;
   --border: #e4e4e7;
   --text: #18181b;
   --text-muted: #71717a;
@@ -36,6 +37,7 @@
     --bg: #0f0f10;
     --surface: #18181b;
     --surface-muted: #202023;
+    --surface-hover: #2a2a2e;
     --border: #2e2e33;
     --text: #f4f4f5;
     --text-muted: #a1a1aa;

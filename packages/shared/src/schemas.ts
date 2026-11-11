@@ -62,3 +62,12 @@ export const errorSchema = z.object({
   message: z.string(),
 });
 export type ApiErrorBody = z.infer<typeof errorSchema>;
+
+export const listParams = z.object({ listId: id });
+export type ListParams = z.infer<typeof listParams>;
+
+export const createListInput = z.object({ title });
+export type CreateListInput = z.infer<typeof createListInput>;
+
+export const updateListInput = z.object({ title });
+export type UpdateListInput = z.infer<typeof updateListInput>;
